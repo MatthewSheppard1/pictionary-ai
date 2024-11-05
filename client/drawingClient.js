@@ -1,14 +1,27 @@
-var sketchProc = function(processingInstance) {
+  var programCode = function(processingInstance) {
     with (processingInstance) {
-        function setup() {
-            noStroke();
-            strokeWeight(4);
+      size(400, 400); 
+      frameRate(30);
+        
+      // Paste code from Khan Academy here:
+
+      function setup() {
+
+            stroke(4);
             frameRate(25);
         }
+        var mouseIsPressed = false;
+        var mousePressed = function(){
+            mouseIsPressed = true;
+        };
+        var mouseReleased = function(){
+            mouseIsPressed = false;
+        };
         var pastX = -1;
         var pastY = -1;
         var points = [];
         var scene = 0;
+        var time = 0;
 
         setup();
 
@@ -43,6 +56,8 @@ var sketchProc = function(processingInstance) {
             if(this.isHovered() && mouseIsPressed) {
                 if(mouseIsPressed) {
                     background(255);
+                    var d = new Date();
+                    time = d.getSeconds();
                     scene = this.scene;
                 }
             }
@@ -60,7 +75,7 @@ var sketchProc = function(processingInstance) {
             startButton.draw();
 
         }
-        function drawWindow(timeToDraw) {
+        function drawWindow(object, timeToDraw) {
             if(mouseX < 20 && mouseY < 20) {
                background(255);
             }
@@ -70,7 +85,24 @@ var sketchProc = function(processingInstance) {
                     line(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1]);
                 }
             }
-            var time = 0;
+
+            var d = new Date();
+            var secs = d.getSeconds();
+            if((secs - time) % 60 >= timeToDraw) {
+                scene = 3;
+            }
+
+            strokeWeight(1);
+            fill(200, 200, 200);
+            rect(200, 25, 400, 50);
+            textAlign(CENTER);
+            fill(0);
+            textSize(40);
+            text((timeToDraw - (secs - time)) % 60, 350, 40);
+            textSize(30);
+            text(object, 100, 35);
+
+            strokeWeight(4);
             if(mouseIsPressed) {
                 stroke(0, 0, 0);
                 if(pastX >= 0) {
@@ -86,19 +118,17 @@ var sketchProc = function(processingInstance) {
             }
         }
 
-        function draw() {
-            text(scene, 20, 20);
+        var draw = function() {
             if(scene === 0) {
                 startWindow();
             }
             else if(scene === 1) {
-                drawWindow(20);
+                drawWindow("Banana", 20);
             }
         }
-    }
-}
+    }};
 
-
-var canvas = document.getElementById("canvas");
-var processingInstance = new Processing(canvas, sketchProc);
-
+  // Get the canvas that ProcessingJS will use
+  var canvas = document.getElementById("canvas");
+  // Pass the function to ProcessingJS constructor
+  var processingInstance = new Processing(canvas, programCode); 
