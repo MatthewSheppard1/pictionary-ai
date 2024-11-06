@@ -18,3 +18,8 @@ class PictionaryModel(nn.Module):
         #channels: 1       64      128    256   512
         self.conv_layers = nn.Sequential(ConvBlock(1, 64), ConvBlock(64, 128), ConvBlock(128, 256), ConvBlock(256, 512))
         self.linear_layers = nn.Sequential(nn.Flatten(), nn.Linear(25 * 25 * 512, 1000), nn.ReLU(), nn.Linear(1000, 100), nn.Softmax())
+
+    def forward(self, x):
+        conv = self.conv_layers(x)
+        return self.linear_layers(conv)
+
