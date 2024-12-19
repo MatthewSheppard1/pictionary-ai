@@ -12,12 +12,12 @@ class ConvBlock(nn.Module):
 
 
 class PictionaryModel(nn.Module):
-    def __init__(self, num_output_classes):
+    def __init__(self):
         super().__init__()
         #sizes: 400x400 200x200 100x100 50x50 25x25
         #channels: 1       64      128    256   512
         self.conv_layers = nn.Sequential(ConvBlock(1, 64), ConvBlock(64, 128), ConvBlock(128, 256), ConvBlock(256, 512))
-        self.linear_layers = nn.Sequential(nn.Flatten(), nn.Linear(25 * 25 * 512, 1000), nn.ReLU(), nn.Linear(1000, 100), nn.Softmax())
+        self.linear_layers = nn.Sequential(nn.Flatten(), nn.Linear(25 * 25 * 512, 1000), nn.ReLU(), nn.Linear(1000, 100), nn.Softmax(dim=1))
 
     def forward(self, x):
         conv = self.conv_layers(x)
