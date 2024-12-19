@@ -24,7 +24,9 @@ var programCode = function(processingInstance) {
         var time = 0;
         var object = 0;
         var guess = 0;
-        var labels = ["cow", "banana", "snowflake", "bug", "book", "jar", "snake", "tree", "slide", "socks", "shoe", "water", "heart", "hat", "kite", "dog", "mouth", "duck", "eyes", "skateboard", "bird", "boy", "apple", "girl", "mouse", "door", "house", "star", "whale", "jacket", "shirt", "hippo", "beach", "egg", "cookie", "cheese", "ice cream cone", "spoon", "spiderweb", "cat", "sun", "cup", "ghost", "flower", "pie", "bone", "grapes", "bell", "jellyfish", "bunny", "truck", "door", "monkey", "spider", "bread", "alligator", "bat", "clock", "lollipop", "moon", "doll", "orange", "ear", "basketball", "bike", "airplane", "pen", "worm", "seashell", "rocket", "cloud", "bear", "corn", "chicken", "purse", "glasses", "carrot", "turtle", "pencil", "horse", "dinosaur", "head", "lamp", "snowman", "ant", "giraffe", "cupcake", "chair", "leaf", "bed", "snail", "baby", "balloon", "bus", "cherry", "crab", "football", "robot", "basketball", "piano"]
+        var hasGuessed = false;
+        var hasSentData = false;
+        var labels = ["cow", "banana", "snowflake", "bug", "book", "jar", "snake", "tree", "slide", "socks", "shoe", "water", "heart", "hat", "kite", "dog", "mouth", "duck", "eyes", "skateboard", "bird", "boy", "apple", "girl", "mouse", "door", "house", "star", "whale", "jacket", "shirt", "hippo", "beach", "egg", "cookie", "cheese", "ice cream cone", "spoon", "spiderweb", "cat", "sun", "cup", "ghost", "flower", "pie", "bone", "grapes", "bell", "jellyfish", "bunny", "truck", "door", "monkey", "spider", "bread", "alligator", "bat", "clock", "lollipop", "moon", "doll", "orange", "ear", "basketball", "bike", "airplane", "pen", "worm", "seashell", "rocket", "cloud", "bear", "corn", "chicken", "purse", "glasses", "carrot", "turtle", "pencil", "horse", "dinosaur", "head", "lamp", "snowman", "ant", "giraffe", "cupcake", "chair", "leaf", "bed", "snail", "baby", "balloon", "bus", "cherry", "crab", "football", "robot", "computer", "boat"]
         setup();
 
         var Button = function(x, y, w, h, text, scene) {
@@ -91,6 +93,7 @@ var programCode = function(processingInstance) {
             fill(0);
             textSize(40);
             textAlign(CENTER);
+            points = []
 
             text("Your word is " + labels[object], 200, 50);
 
@@ -99,6 +102,21 @@ var programCode = function(processingInstance) {
         }
 
         function restartWindow() {
+
+            if(!hasSentData) {
+                hasSentData = true;
+                fetch('http://127.0.0.1:5000/final-data', {
+                    method: "POST",
+                    body: JSON.stringify({
+                        points: points,
+                        label: object
+                    }),
+                    headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                    }
+                });
+            }
+
             restartButton.draw();
             quitButton.draw();
         }
@@ -107,12 +125,36 @@ var programCode = function(processingInstance) {
             if(mouseX < 20 && mouseY < 20) {
                background(255);
             }
-
+            hasSentData = false;
             var d = new Date();
             var secs = d.getSeconds();
             if((timeToDraw - (secs - time)) % 60 <= 0) {
                 scene = 3;
             }
+
+            if(secs % 5 === 0 && hasGuessed === false) {
+                hasGuessed = true;
+                fetch('http://127.0.0.1:5000/guess', {
+                method: "POST",
+                body: JSON.stringify({
+                    points: points
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    guess = data.message;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+            if(secs % 5 != 0 && secs != 0) {
+                hasGuessed = false;
+            }
+
             //upper horizontal banner
             noStroke();
             fill(200, 200, 200);
@@ -128,7 +170,8 @@ var programCode = function(processingInstance) {
             fill(200, 200, 200);
             rect(200, 475, 400, 50);
             fill(0);
-            text("AI guess: " + labels[guess], 100, 485);
+            textAlign(LEFT)
+            text("AI guess: " + labels[guess], 25, 485);
             quitButton.draw();
 
             strokeWeight(4);
@@ -137,7 +180,9 @@ var programCode = function(processingInstance) {
                 if(pastX >= 0) {
                     line(pastX, pastY, mouseX, mouseY);
                 }
-                points.push([mouseX, mouseY]);
+                if(mouseY >= 50 && mouseY < 450) {
+                    points.push([mouseX, mouseY - 50]);
+                }
                 pastX = mouseX;
                 pastY = mouseY;
             }
